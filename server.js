@@ -234,9 +234,10 @@ io.on('connection', (socket) => {
   
   // TCP 메시지 전송 요청 처리
   socket.on('send-tcp-message', (data) => {
-    const message = data.message || 'BB:4321:1200:0';
+    const message = data.message || 'DCT:0023:tx-1234-5678=90ab:123가4567:홍길동:DISEL:FULL:0:false:0:DIGITAL:AUTO_PAYMENT:END';
     const targetStationId = data.stationId || null;
     const targetPumpId = data.pumpId || null;
+    // if(targetPumpId==null) targetPumpId='4'; //wj 
     let sentCount = 0;
     
     if (targetStationId && targetPumpId) {
@@ -248,9 +249,12 @@ io.on('connection', (socket) => {
     // 연결된 TCP 클라이언트에 메시지 전송
     tcpClients.forEach((clientInfo, clientId) => {
       try {
+        //
+        clientInfo.pumpId='4'; //wj 강제로 셋팅해줌
         // stationId와 pumpId가 지정된 경우 필터링
         if (targetStationId && targetPumpId) {
           if (clientInfo.stationId !== targetStationId || clientInfo.pumpId !== targetPumpId) {
+            console.log(`[${getTimestamp()}] 조건에 맞지 않으면 스킵: ${clientInfo.stationId} !== ${targetStationId} || ${clientInfo.pumpId} !== ${targetPumpId}`);
             return; // 조건에 맞지 않으면 스킵
           }
         }
@@ -322,24 +326,49 @@ const tcpServer = net.createServer((client) => {
       }
 
       // 응답 메시지 전송
-      if(clientInfo.dataCount % 10 == 0) {
-        const responseMsg = 'AA:0';
-        client.write(responseMsg);
+      let test='test';
+      if(test==='testlater'){
+        if(clientInfo.dataCount % 10 == 0) {
+          const responseMsg = 'AA:0';
+          client.write(responseMsg);
 
-      }
-      else {
-        const responseMsg = 'OK:0';
-        client.write(responseMsg);
+        }
+        else {
+          const responseMsg = 'OK:0';
+          client.write(responseMsg);
+        }
       }
       
       // 데이터 파싱 (안전하게)
       const dataStr = data.toString().trim();
       const parts = dataStr.split(':');
-      
-      if (parts.length >= 2) {
+      /** 
+       * 
+       incomming HeartBeat data  every 30seconds:: 
+          HBR:"stationId":"pumpId":END 
+       incomming Charging start data:: 
+          SRT:"stationId":"pumpId":"eventUuid":"startedTime":"fuelType":"unitPrice":END
+       incomming Charging stop data:: 
+          STP:"stationId":"pumpId":"eventUuid":"volume":"amount":"carWashCoupon":"endedTime":"durationSec":"terminationReason":END
+        *
+      */
+
+  
+      if (parts[0]==='HRB' && parts.length >= 3) {
+          // const stationId = parts[1];
+          // const pumpId = parts[2];
+          // const status = parts[3];
+
+
+          // const stationId = '210';
+          // const pumpId = parts[1];
+          // const status = parts[2];
+
+        const cmd=parts[0];
         const stationId = parts[1];
         const pumpId = parts[2];
-        const status = parts[3];
+       
+        let status = 0;
         
         // 클라이언트 정보에 stationId와 pumpId 저장
         const clientInfo = tcpClients.get(clientId);
@@ -347,7 +376,16 @@ const tcpServer = net.createServer((client) => {
           clientInfo.stationId = stationId;
           clientInfo.pumpId = pumpId;
         }
+
+        if (clientInfo) {
+          status = clientInfo.dataCount;
+        }
+        else {
+          status = 0;
+        }
         
+      
+
         // Socket.IO로 데이터 전송
         io.emit('tcp-res', {
           clientId: clientId,
@@ -358,12 +396,19 @@ const tcpServer = net.createServer((client) => {
           status: status,
           timestamp: new Date().toISOString()
         });
-        
+        if(cmd[0]==='HBR' || cmd[0]==='SRT' || cmd[0]==='STP') {
+          const responseMsg = 'OK:'+stationId+':'+pumpId+':END';
+          client.write(responseMsg);
+        }
+      
+
         console.log(`[${getTimestamp()}] 데이터 처리 완료 - 충전소: ${stationId}, 펌프: ${pumpId}, 상태: ${status} ${clientInfo.dataCount} `);
-      } else {
+      } 
+      else {
         console.warn(`[${getTimestamp()}] 잘못된 데이터 형식: ${dataStr} ${parts.length}`);
       }
-    } catch (error) {
+    } 
+    catch (error) {
       console.error(`[${getTimestamp()}] 데이터 처리 중 오류:`, error);
     }
   });

@@ -553,37 +553,38 @@
         
         <div class="status">
             <div class="status-card">
-                <h3>연결된 TCP 클라이언트</h3>
+                <h3>Connected Clients</h3>
                 <div class="value" id="clientCount">0</div>
             </div>
             <div class="status-card">
-                <h3>수신된 메시지</h3>
+                <h3>Received Messages</h3>
                 <div class="value" id="messageCount">0</div>
             </div>
             <div class="status-card">
-                <h3>서버 상태</h3>
+                <h3>Server Status</h3>
                 <div class="value" id="serverStatus">연결 중...</div>
             </div>
         </div>
         
         <div class="control-panel">
-            <h2>TCP 메시지 전송</h2>
+            <h2>Send Message to Client</h2>
             <div style="margin-bottom: 15px;">
-                <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">대상 선택</label>
+                <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">Select Pump</label>
                 <div class="input-group" style="margin-bottom: 10px;">
-                    <input type="text" id="stationIdInput" placeholder="충전소 ID (예: 4321)" style="width: 150px;">
-                    <input type="text" id="pumpIdInput" placeholder="펌프 번호 (예: 1200)" style="width: 150px;">
+                    <input type="text" id="stationIdInput" placeholder="Station ID(0)" style="width: 150px;">
+                    <input type="text" id="pumpIdInput" placeholder="Pump Id(4)" style="width: 150px;">
                 </div>
             </div>
             <div>
-                <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">전송할 메시지</label>
+                <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">Message to Send</label>
                 <div class="input-group">
-                    <input type="text" id="messageInput" placeholder="메시지 입력 (예: BB:4321:1200:0)" value="BB:4321:1200:0">
-                    <button onclick="sendMessage()">전송</button>
+                    <input type="text" id="messageInput" placeholder="메시지 입력 (예: BB:4321:1200:0)" 
+                        value="DCT:0023:tx-1234-5678=90ab:123가4567:홍길동:DISEL:AMOUNT:8000:false:0:DIGITAL:AUTO_PAYMENT:END">
+                    <button onclick="sendMessage()">Send</button>
                 </div>
             </div>
             <div class="connected-clients">
-                <h3>연결된 클라이언트 목록</h3>
+                <h3>Connected Clients</h3>
                 <div class="client-list" id="clientList">
                     <span style="color: #999;">연결된 클라이언트가 없습니다.</span>
                 </div>
@@ -598,7 +599,7 @@
         </div>
         
         <div class="control-panel">
-            <h2> Realtime log</h2>
+            <h2> Log</h2>
             <div class="log-container" id="logContainer"></div>
         </div>
     </div>
@@ -936,7 +937,7 @@
                     <div class="station-card">
                         <div class="station-header">
                             <div>
-                                <div class="station-title">충전소 ID: ${stationId}</div>
+                                <div class="station-title">Station ID: ${stationId}</div>
                             </div>
                             <div class="station-info">
                                 <span>IP: ${station.ip}</span>
